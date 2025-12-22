@@ -1,0 +1,2 @@
+# Camera_Footage_Analysis
+一个基于Python+YOLOv8n+DirectML实现的AI分析监控视频的自动化工作流。声明：代码经Gemini反复修改后最终定稿，因本身使用了AI工具编写代码，无任何技术支持，不设著作权限制。
