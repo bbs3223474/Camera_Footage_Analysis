@@ -9,11 +9,11 @@ import onnxruntime as ort
 SOURCE_DIR = r"H:\Videos"  # 你的视频源路径
 SAVE_DIR = r"E:\process\clips"      # 结果保存路径
 MODEL_PATH = "yolov8n.onnx"
-NUM_PROCESSES = 6        # 5700X3D 建议 4-6 个进程
-STRIDE = 10              # 跳帧率
-IMG_SIZE = 1024          # 统一推理分辨率
-CONF_LEVEL = 0.35
-BUFFER_SEC = 2
+NUM_PROCESSES = 6        # 并发进程数，5700X3D 建议 4-6 个进程，与下方STRIDE配合修改，STRIDE越大，运算压力越小，并发数可以越多
+STRIDE = 10              # 跳帧数量，每隔多少帧分析一次，可适当增加以提高解析速度
+IMG_SIZE = 1024          # 统一推理分辨率，中高端GPU推荐至少1024分辨率以提高分析精度
+CONF_LEVEL = 0.35        # 最低可信度，增大数字以提高分析精度，降低数字以覆盖更全面的结果
+BUFFER_SEC = 2           # 缓冲秒数，检测到动作后，额外截取之前或之后多少秒的视频
 TARGET_CLASSES = [0, 1, 2, 3] # 人、自行车、汽车、摩托车
 
 def get_video_info(path):
@@ -47,7 +47,7 @@ def process_single_video(video_name):
         'ffmpeg', 
         '-loglevel', 'error',
         '-hwaccel', 'd3d11va',        # 1. 开启 D3D11 硬件加速接口
-        '-hwaccel_device', '0',        # 2. 指定第一块显卡 (RX 9070)
+        '-hwaccel_device', '0',        # 2. 指定第一块显卡
         '-i', video_path,
         '-vf', f'fps={fps/STRIDE},scale={IMG_SIZE}:{IMG_SIZE}', # 硬件层缩放
         '-f', 'image2pipe', 
@@ -56,7 +56,7 @@ def process_single_video(video_name):
         '-'
     ]
     
-    # 2. 初始化 DirectML (RX 9070)
+    # 2. 初始化 DirectML
     opts = ort.SessionOptions()
     session = ort.InferenceSession(
         MODEL_PATH, 
@@ -139,7 +139,7 @@ def main():
     files = [f for f in os.listdir(SOURCE_DIR) if f.endswith(('.mp4', '.mkv', '.avi'))]
     
     print(f"==========================================")
-    print(f"🚀 RX 9070 管道流引擎已就绪")
+    print(f"🚀 GPU 管道流引擎已就绪")
     print(f"模式: FFmpeg Pipe + DirectML 推理")
     print(f"==========================================\n")
 
